@@ -23,7 +23,7 @@ An AI-powered biometric authentication system using facial recognition with live
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/biometric_auth_ai.git
-cd biometric_auth_ai
+cd biometric_ai_banking
 ```
 
 2. Create and activate virtual environment:
@@ -57,7 +57,7 @@ cp .env.example .env
 
 1. Start the server:
 ```bash
-python app/main.py
+uvicorn app.main:app --reload --port 8000
 ```
 
 2. Access the application:
@@ -113,3 +113,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For questions and support, please open an issue or contact:
 - Email: truongthienbao5685@gmail.com
+
