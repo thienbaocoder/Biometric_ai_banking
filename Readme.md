@@ -42,9 +42,8 @@ pip install -r requirements.txt
 
 4. Set up database:
 ```bash
-# Create PostgreSQL database named 'biometric_auth'
-psql -U postgres
-CREATE DATABASE biometric_auth;
+# SQLite database will be automatically created on first run
+# Default location: ./biometric.db
 ```
 
 5. Configure environment variables:
