@@ -16,7 +16,6 @@ An AI-powered biometric authentication system using facial recognition with live
 - Python 3.8+
 - OpenCV 4.5+
 - ONNX Runtime
-- PostgreSQL 12+
 
 ## Installation
 
@@ -40,18 +39,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Set up database:
-```bash
-# SQLite database will be automatically created on first run
-# Default location: ./biometric.db
-```
-
-5. Configure environment variables:
-```bash
-# Create .env file
-cp .env.example .env
-# Edit database credentials and other settings
-```
 
 ## Running the Application
 
@@ -70,11 +57,6 @@ uvicorn app.main:app --reload --port 8000
 - `POST /verify` - Verify user identity using facial recognition
 - `GET /metrics` - View system metrics and performance
 
-## Running Tests
-
-```bash
-pytest tests/
-```
 
 ## Project Structure
 
@@ -99,13 +81,7 @@ tools/              # Utility scripts
 
 ## Contributing
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/name`)
-3. Commit changes (`git commit -am 'Add feature'`)
-4. Push branch (`git push origin feature/name`)
-5. Create Pull Request
-
-## License
+## License v1.0
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
@@ -113,4 +89,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For questions and support, please open an issue or contact:
 - Email: truongthienbao5685@gmail.com
+
 
