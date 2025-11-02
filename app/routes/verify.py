@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from pydantic import BaseModel
-from typing import List, Dict, Any
-import numpy as np, random, time, uuid, json
+from typing import List, Dict
+import numpy as np, random, time, uuid
 
 from ..services.liveness_pad import liveness_ok
 from ..services.face_embedding import extract
@@ -11,74 +11,32 @@ from ..database.queries import get_pose_embeddings, add_log
 
 router = APIRouter()
 
-# ------------------ utils ------------------
+def _pad_check(image_b64: str) -> tuple[bool, float]:
+    res = liveness_ok(image_b64)
+    if isinstance(res, tuple):
+        ok, prob = bool(res[0]), float(res[1])
+    else:
+        ok, prob = bool(res), (1.0 if res else 0.0)
+    return ok, prob
 
 def _to_vec128(x) -> np.ndarray:
-    import json, numpy as np
-
-    def _from_any(y):
-        # y -> ndarray phẳng nếu có thể
-        if isinstance(y, np.ndarray):
-            return y.reshape(-1).astype(np.float32, copy=False)
-        if isinstance(y, (list, tuple)):
-            return np.asarray(y, dtype=np.float32).reshape(-1)
-        if isinstance(y, (bytes, bytearray)):
-            # giả định raw float32
-            cnt = len(y) // 4
-            return np.frombuffer(y, dtype=np.float32, count=cnt).reshape(-1)
-        if isinstance(y, str):
-            s = y.strip()
-            # case 1: JSON "[...]" hoặc "[[...]]"
-            if s.startswith("[") and s.endswith("]"):
-                try:
-                    obj = json.loads(s)
-                    return np.asarray(obj, dtype=np.float32).reshape(-1)
-                except json.JSONDecodeError:
-                    pass
-            # case 2: chuỗi "0.1,0.2,..." -> tách theo dấu phẩy
-            if "," in s:
-                arr = [float(t) for t in s.split(",") if t.strip()!=""]
-                return np.asarray(arr, dtype=np.float32).reshape(-1)
-            # trường hợp còn lại: không rõ định dạng
-            raise HTTPException(status_code=500, detail="BadEmbeddingString")
-        # loại không hỗ trợ
-        raise HTTPException(status_code=500, detail=f"UnsupportedEmbeddingType:{type(y).__name__}")
-
-    v = _from_any(x)
-
-    # nếu bị lồng một lớp: v.size==1 và phần tử bên trong là str/bytes/list -> bóc thêm 1 lần
-    if v.size == 1:
-        inner = None
-        # lấy phần tử gốc (không cast sang float) để thử bóc tiếp
-        if isinstance(x, (list, tuple)) and len(x) == 1:
-            inner = x[0]
-        elif isinstance(x, np.ndarray) and x.size == 1:
-            inner = x.item()
-        if isinstance(inner, (str, bytes, bytearray, list, tuple, np.ndarray)):
-            v = _from_any(inner)
-
-    v = v.reshape(-1)
+    v = np.asarray(x, dtype=np.float32).reshape(-1)
     if v.size == 512:
-        # dữ liệu cũ ArcFace -> yêu cầu enroll lại theo SFace 128-D
         raise HTTPException(status_code=409, detail="DimMismatch:512_vs_128_ReEnrollRequired")
     if v.size != 128:
-        # báo kích thước thực để biết nguồn dữ liệu sai
         raise HTTPException(status_code=500, detail=f"UnexpectedDim:{v.size}")
-    return v.astype(np.float32, copy=False)
+    return v
 
 def cosine(a, b) -> float:
-    a = np.asarray(a, dtype=np.float32).reshape(-1)  # (128,)
-    b = np.asarray(b, dtype=np.float32).reshape(-1)  # (128,)
+    a = np.asarray(a, dtype=np.float32).reshape(-1)
+    b = np.asarray(b, dtype=np.float32).reshape(-1)
     if a.size != b.size:
         raise HTTPException(status_code=409, detail=f"DimMismatch:{a.size}_vs_{b.size}")
-    denom = (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9)
-    return float(np.dot(a, b) / denom)
-
-# ------------------ schemas ------------------
+    return float(np.dot(a, b) / (np.linalg.norm(a)*np.linalg.norm(b) + 1e-9))
 
 class VerifyStartReq(BaseModel):
     userId: int
-    purpose: str  # "LOGIN" | "PAYMENT"
+    purpose: str  # LOGIN | PAYMENT
 
 class VerifyStartResp(BaseModel):
     challengeId: str
@@ -89,81 +47,120 @@ class VerifySubmitReq(BaseModel):
     challengeId: str
     frames: List[Dict[str, str]]  # [{pose, imageBase64}]
 
-# ------------------ in-memory challenges ------------------
-
 CHALLENGES: Dict[str, Dict] = {}
 
 @router.post("/auth/verify/start", response_model=VerifyStartResp)
 def verify_start(req: VerifyStartReq):
-    poses = ["front", "left", "right"]
+    poses = ["front","left","right"]
     random.shuffle(poses)
     cid = uuid.uuid4().hex
-    CHALLENGES[cid] = {
-        "userId": req.userId,
-        "sequence": poses,
-        "purpose": req.purpose,
-        "ts": time.time()
-    }
+    CHALLENGES[cid] = {"userId": req.userId, "sequence": poses, "purpose": req.purpose, "ts": time.time()}
     return VerifyStartResp(challengeId=cid, purpose=req.purpose, sequence=poses)
 
 @router.post("/auth/verify/submit")
-def verify_submit(req: VerifySubmitReq, request: Request):
+def verify_submit(
+    req: VerifySubmitReq,
+    request: Request,
+    gt: str | None = Query(None, description="lab only: 'bona' or 'spoof'"),
+    atk: str | None = Query(None, description="lab only: 'print'|'replay'|'mask'|..."),
+):
+    t0 = time.perf_counter()
+
     ch = CHALLENGES.get(req.challengeId)
     if not ch:
         raise HTTPException(status_code=400, detail="InvalidChallenge")
+    user_id = ch["userId"]; seq = ch["sequence"]; purpose = ch["purpose"]
 
-    user_id = ch["userId"]
-    seq = ch["sequence"]
-    purpose = ch["purpose"]
-
-    # đọc embeddings đã enroll và chuẩn hóa về (128,)
-    enrolled_raw = get_pose_embeddings(user_id)  # expected keys: front/left/right
-    if set(enrolled_raw.keys()) != {"front", "left", "right"}:
+    enrolled_raw = get_pose_embeddings(user_id)
+    if set(enrolled_raw.keys()) != {"front","left","right"}:
         raise HTTPException(status_code=404, detail="UserNotEnrolled")
     enrolled = {k: _to_vec128(v) for k, v in enrolled_raw.items()}
 
     if len(req.frames) != len(seq):
         raise HTTPException(status_code=400, detail="FramesNotMatchSequence")
 
-    sims: List[float] = []
+    sims, pad_probs, pad_flags = [], [], []
     for expected, frame in zip(seq, req.frames):
         if frame.get("pose") != expected:
             raise HTTPException(status_code=400, detail=f"WrongPoseOrder:{expected}")
-        img = frame.get("imageBase64", "")
-        if not liveness_ok(img):
-            raise HTTPException(status_code=400, detail=f"LivenessFailed:{expected}")
 
-        probe = extract(img)                      # có thể trả (1,128) hoặc (128,)
-        probe = np.asarray(probe, np.float32).reshape(-1)  # ép về (128,)
+        img = frame.get("imageBase64", "")
+
+        # 1) PAD
+        pad_ok, p_live = _pad_check(img)
+        pad_probs.append(float(p_live))
+        pad_flags.append(bool(pad_ok))
+
+        # 2) Embedding
+        try:
+            probe = extract(img)
+        except ValueError as e:
+            if "NoFaceDetected" in str(e):
+                # Trả về 400 rõ ràng cho UI, đồng thời log forensics nhẹ
+                try:
+                    add_log(user_id, None, "DENY", "FAIL", purpose,
+                            ip=(request.client.host if request.client else None),
+                            attack_type="no_face",
+                            duration_ms=int((time.perf_counter()-t0)*1000))
+                except Exception as _:
+                    pass
+                raise HTTPException(status_code=400, detail="NoFaceDetected")
+            raise HTTPException(status_code=400, detail=str(e))
 
         sims.append(cosine(probe, enrolled[expected]))
 
-    # lấy tư thế yếu nhất làm aggregate
-    agg = float(min(sims))
+    sim_min = float(min(sims))
+    pad_min = float(min(pad_probs))
+    pad_max = float(max(pad_probs))
+    pad_avg = float(sum(pad_probs)/len(pad_probs))
+    pad_passed = int(all(pad_flags))
 
-    # decide(agg, purpose) nếu có tham số purpose; fallback cho version cũ
-    decision = decide(agg, purpose=purpose) if "purpose" in decide.__code__.co_varnames else decide(agg)
+    dec = decide(sim_min, purpose=purpose) if "purpose" in decide.__code__.co_varnames else decide(sim_min)
+    if dec == "FAIL":
+        dec = "DENY"
+    if not pad_passed:
+        dec = "STEP_UP" if purpose == "LOGIN" else "DENY"
 
-    add_log(user_id, agg, decision, "PASS", purpose, ip=request.client.host)
+    duration_ms = int((time.perf_counter() - t0) * 1000)
+    is_bona = None if gt is None else (1 if gt.lower()=="bona" else 0)
+
+    # Ghi log – không để lỗi log làm hỏng flow
+    try:
+        add_log(
+            user_id, sim_min, dec,
+            "PASS" if pad_passed else "FAIL", purpose,
+            ip=(request.client.host if request.client else None),
+            pad_prob_min=pad_min, pad_prob_max=pad_max, pad_prob_avg=pad_avg,
+            pad_passed=pad_passed, is_bona=is_bona, attack_type=atk, duration_ms=duration_ms
+        )
+    except Exception as e:
+        print(f"add_log failed (non-blocking): {e}")
+
     CHALLENGES.pop(req.challengeId, None)
 
-    if decision == "ALLOW":
+    if dec == "ALLOW":
         return {
             "purpose": purpose,
             "token": issue(str(user_id)),
-            "similarity_min": agg,
-            "similarities": sims
+            "similarity_min": sim_min,
+            "similarities": sims,
+            "pad_prob_min": pad_min, "pad_prob_max": pad_max, "pad_prob_avg": pad_avg,
+            "pad_probs": pad_probs
         }
-    if decision == "STEP_UP":
+    if dec == "STEP_UP":
         return {
             "purpose": purpose,
             "stepUp": "OTP_REQUIRED",
-            "similarity_min": agg,
-            "similarities": sims
+            "similarity_min": sim_min,
+            "similarities": sims,
+            "pad_prob_min": pad_min, "pad_prob_max": pad_max, "pad_prob_avg": pad_avg,
+            "pad_probs": pad_probs
         }
 
-    # mặc định coi là FAIL
-    raise HTTPException(
-        status_code=400,
-        detail={"error": "VerifyFailed", "similarity_min": agg, "similarities": sims}
-    )
+    # DENY
+    raise HTTPException(status_code=400, detail={
+        "error": "VerifyFailed",
+        "similarity_min": sim_min, "similarities": sims,
+        "pad_prob_min": pad_min, "pad_prob_max": pad_max, "pad_prob_avg": pad_avg,
+        "pad_probs": pad_probs
+    })
