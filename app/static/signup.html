@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>AI Biometric Auth Demo</title>
+    <!-- Link css -->
+    <link rel="stylesheet" href="signup.css">
+    <!-- Link font-awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Link Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <section>
+        <div class="row">
+            <h2>Đăng ký khuôn mặt</h2>
+            <p class="muted">
+                UI sẽ tự chụp 3 tư thế: <b>front → left → right</b> khi ổn định.
+            </p>
+            <div id="camWrap">
+                <video id="cam" autoplay playsinline></video>
+                <canvas id="overlay" width="640" height="480"></canvas>
+            </div>
+
+            <div class="stack">
+                <div><span class="badge">Live camera</span></div>
+                <button id="btnCam" class="primary">Bật camera</button>
+                <button id="btnEnroll" class="primary">Enroll tự động</button>
+                <div style="display: flex; justify-content: space-around;">UserId: <b id="userIdShow" class="muted">chưa
+                        có</b></div>
+
+                <div class="pill">Auto-capture khi khung hình ổn định</div>
+
+                <div class="kpi">
+                    <div class="card">Motion: <b id="kMotion">–</b></div>
+                    <div class="card">Sharpness: <b id="kSharp">–</b></div>
+                    <div class="card">Stability: <b id="kStable">–</b></div>
+                </div>
+
+                <div>
+                    <div class="muted" id="poseHint">—</div>
+                    <div id="progressBar">
+                        <div id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Kết quả</h2>
+        <pre id="out">{}</pre>
+    </section>
+    <section class="nav">
+        <div class="circle">
+            <button class="btn-sign-up">
+                <a class="sign-up" href="./signup.html"><strong>Đăng ký</strong></a>
+            </button>
+        </div>
+        <div class="circle">
+            <button class="btn-sign-in">
+                <a class="sign-in" href="./signin.html"><strong>Xác thực</strong></a>
+            </button>
+        </div>
+        <div class="circle">
+            <button class="btn-home">
+                <a class="home" href="./frontend.html"><strong>Home</strong></a>
+            </button>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

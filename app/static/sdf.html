@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>AI Biometric Auth Demo</title>
+  <!-- Link css -->
+  <link rel="stylesheet" href="frontend.css">
+  <!-- Link font-awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Link Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ==== AUTH PAGE STYLE ==== */
+    .auth-page {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(-45deg, #ff4d4d, #ffcc00, #ffa500, #00cc66, #0066ff);
+      background-size: 400% 400%;
+      animation: gradientFlow 8s ease infinite;
+      transition: background 1s ease;
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+    }
+
+    .auth-container {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      padding: 40px 50px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      width: 420px;
+      animation: fadeIn 1s ease;
+    }
+
+    .auth-container h2 {
+      margin-bottom: 10px;
+      font-size: 26px;
+    }
+
+    .auth-container p {
+      margin-bottom: 20px;
+      color: #f5f5f5;
+    }
+
+    .cam-box {
+      position: relative;
+      margin-bottom: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      padding: 12px 28px;
+      font-size: 16px;
+      background: #fff;
+      border: none;
+      border-radius: 30px;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: #00cc66;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .switch-link {
+      margin-top: 15px;
+    }
+
+    .switch-link a {
+      color: #fff;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradientFlow {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    /* Khi đang xử lý (đăng ký/xác thực) thì nền sẽ động liên tục */
+    body.processing {
+      animation: gradientFlow 2s linear infinite;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="bg-header">
+      <h1>Biometric Authentication</h1>
+    </div>
+  </header>
+  <section class="action">
+    <div class="flex">
+      <div class="card">
+        <div class="icon-shield">
+          <i class="fa-solid fa-shield"></i>
+        </div>
+        <h3>Đăng ký khuôn mặt</h3>
+        <p>Tạo tài khoản mới và đăng ký dữ liệu sinh trắc học khuôn mặt để bắt đầu sử dụng dịch vụ ngân hàng số
+          an toàn</p>
+        <button class="btn-sign-up">
+          <a class="sign-up" href="./signup.html"><strong>Bắt đầu đăng ký</strong></a>
+        </button>
+      </div>
+      <div class="card">
+        <div class="icon-key">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <h3>Xác thực hành động</h3>
+        <p>Sử dụng xác thực khuôn mặt AI để đăng nhập an toàn vào tài khoản ngân hàng số của bạn</p>
+        <button class="btn-sign-in">
+          <a class="sign-in" href="./signin.html"><strong>Xác thực ngay</strong></a>
+        </button>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="row">
+      <div id="camWrap">
+        <video id="cam" autoplay playsinline></video>
+        <canvas id="overlay" width="640" height="480"></canvas>
+      </div>
+
+      <div class="stack">
+        <div><span class="badge">Live camera</span></div>
+        <button id="btnCam" class="primary">Bật camera</button>
+        <div class="pill">Auto-capture khi khung hình ổn định</div>
+
+        <div class="kpi">
+          <div class="card">Motion: <b id="kMotion">–</b></div>
+          <div class="card">Sharpness: <b id="kSharp">–</b></div>
+          <div class="card">Stability: <b id="kStable">–</b></div>
+        </div>
+
+        <div>
+          <div class="muted" id="poseHint">—</div>
+          <div id="progressBar">
+            <div id="progressFill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="enroll">
+    <h2>1) Đăng ký khuôn mặt</h2>
+    <p class="muted">
+      UI sẽ tự chụp 3 tư thế: <b>front → left → right</b> khi ổn định.
+    </p>
+    <div class="row">
+      <div></div>
+      <div class="stack">
+        <button id="btnEnroll" class="primary">Enroll tự động</button>
+        <div>📌 UserId: <b id="userIdShow" class="muted">chưa có</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="verify">
+    <h2>2) Xác thực hành động</h2>
+    <div class="radio-row">
+      <label><input type="radio" name="purpose" value="LOGIN" checked /> Đăng
+        nhập</label>
+      <label><input type="radio" name="purpose" value="PAYMENT" /> Xác nhận giao
+        dịch</label>
+    </div>
+    <div class="row" style="margin-top: 8px">
+      <div></div>
+      <div class="stack">
+        <button id="btnVerify" class="primary">Bắt đầu xác thực</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Kết quả</h2>
+    <pre id="out">{}</pre>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

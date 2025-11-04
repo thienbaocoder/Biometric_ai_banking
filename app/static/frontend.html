@@ -1,224 +1,55 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>AI Biometric Auth Demo</title>
-    <style>
-      :root {
-        --primary: #0f62fe;
-        --good: #12b886;
-        --warn: #f59f00;
-        --bad: #fa5252;
-        --muted: #6b7280;
-        --card: #ffffff;
-        --bg: #f6f7fb;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        font-family: ui-sans-serif, system-ui, Arial;
-        background: var(--bg);
-        color: #111827;
-        max-width: 1000px;
-        margin: 24px auto;
-        padding: 0 16px 48px;
-      }
-      h1 {
-        font-size: 22px;
-        margin: 0 0 8px;
-      }
-      section {
-        background: var(--card);
-        border: 1px solid #e5e7eb;
-        padding: 16px;
-        border-radius: 14px;
-        margin-bottom: 16px;
-        box-shadow: 0 2px 10px rgba(16, 24, 40, 0.05);
-      }
-      .row {
-        display: grid;
-        grid-template-columns: 1fr 280px;
-        gap: 16px;
-        align-items: start;
-      }
-      .stack > * {
-        margin-bottom: 12px;
-      }
-      .muted {
-        color: var(--muted);
-      }
-      .badge {
-        display: inline-block;
-        padding: 4px 8px;
-        font-size: 12px;
-        border-radius: 999px;
-        background: #eef2ff;
-        color: #3730a3;
-        border: 1px solid #e0e7ff;
-      }
-      button {
-        padding: 10px 14px;
-        border-radius: 10px;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        cursor: pointer;
-        font-weight: 600;
-      }
-      button.primary {
-        background: var(--primary);
-        color: #fff;
-        border-color: var(--primary);
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-      #camWrap {
-        position: relative;
-        display: inline-block;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 1px 10px rgba(0, 0, 0, 0.08);
-      }
-      #cam {
-        display: block;
-        width: 640px;
-        height: 480px;
-        background: #000;
-      }
-      #overlay {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-      #poseHint {
-        font-weight: 700;
-      }
-      #progressBar {
-        height: 8px;
-        background: #eef2ff;
-        border-radius: 999px;
-        overflow: hidden;
-      }
-      #progressFill {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #60a5fa, #22d3ee);
-        transition: width 0.15s linear;
-      }
-      .kpi {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        font-size: 13px;
-      }
-      .kpi .card {
-        border: 1px solid #e5e7eb;
-        padding: 8px 10px;
-        border-radius: 10px;
-        background: #fff;
-      }
-      pre#out {
-        background: #0b1220;
-        color: #e6edf3;
-        padding: 12px;
-        border-radius: 10px;
-        overflow: auto;
-        max-height: 260px;
-        font-size: 12px;
-      }
-      .radio-row {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-      }
-      .pill {
-        padding: 6px 10px;
-        border: 1px dashed #d1d5db;
-        border-radius: 999px;
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .ok {
-        color: var(--good);
-      }
-      .warn {
-        color: var(--warn);
-      }
-      .bad {
-        color: var(--bad);
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Biometric Authentication (Auto-Capture)</h1>
 
-    <section>
-      <div class="row">
-        <div id="camWrap">
-          <video id="cam" autoplay playsinline></video>
-          <canvas id="overlay" width="640" height="480"></canvas>
+<head>
+  <meta charset="utf-8" />
+  <title>AI Biometric Auth Demo</title>
+  <!-- Link css -->
+<link rel="stylesheet" href="frontend.css">
+<!-- Link font-awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+  integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Link Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://ffonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+  rel="stylesheet">
+</head>
+
+<body>
+  <header>
+    <div class="bg-header">
+      <h1>Biometric Authentication</h1>
+    </div>
+  </header>
+  <section class="action">
+    <div class="flex">
+      <div class="card">
+        <div class="icon-shield">
+          <i class="fa-solid fa-shield"></i>
         </div>
-
-        <div class="stack">
-          <div><span class="badge">Live camera</span></div>
-          <button id="btnCam" class="primary">Bật camera</button>
-          <div class="pill">Auto-capture khi khung hình ổn định</div>
-
-          <div class="kpi">
-            <div class="card">Motion: <b id="kMotion">–</b></div>
-            <div class="card">Sharpness: <b id="kSharp">–</b></div>
-            <div class="card">Stability: <b id="kStable">–</b></div>
-          </div>
-
-          <div>
-            <div class="muted" id="poseHint">—</div>
-            <div id="progressBar"><div id="progressFill"></div></div>
-          </div>
+        <h3>Đăng ký khuôn mặt</h3>
+        <p>Tạo tài khoản mới và đăng ký dữ liệu sinh trắc học khuôn mặt để bắt đầu sử dụng dịch vụ ngân hàng số an toàn
+        </p>
+        <button class="btn-sign-up">
+          <a class="sign-up" href="./signup.html"><strong>Bắt đầu đăng ký</strong></a>
+        </button>
+      </div>
+      <div class="card">
+        <div class="icon-key">
+          <i class="fa-solid fa-key"></i>
         </div>
+        <h3>Xác thực hành động</h3>
+        <p>Sử dụng xác thực khuôn mặt AI để đăng nhập an toàn vào tài khoản ngân hàng số của bạn</p>
+        <button class="btn-sign-in">
+          <a class="sign-in" href="./signin.html"><strong>Xác thực ngay</strong></a>
+        </button>
       </div>
-    </section>
+    </div>
+  </section>
+  <script src="script.js"></script>
+</body>
 
-    <section id="enroll">
-      <h2>1) Đăng ký khuôn mặt</h2>
-      <p class="muted">
-        UI sẽ tự chụp 3 tư thế: <b>front → left → right</b> khi ổn định.
-      </p>
-      <div class="row">
-        <div></div>
-        <div class="stack">
-          <button id="btnEnroll" class="primary">Enroll tự động</button>
-          <div>📌 UserId: <b id="userIdShow" class="muted">chưa có</b></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="verify">
-      <h2>2) Xác thực hành động</h2>
-      <div class="radio-row">
-        <label
-          ><input type="radio" name="purpose" value="LOGIN" checked /> Đăng
-          nhập</label
-        >
-        <label
-          ><input type="radio" name="purpose" value="PAYMENT" /> Xác nhận giao
-          dịch</label
-        >
-      </div>
-      <div class="row" style="margin-top: 8px">
-        <div></div>
-        <div class="stack">
-          <button id="btnVerify" class="primary">Bắt đầu xác thực</button>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Kết quả</h2>
-      <pre id="out">{}</pre>
-    </section>
-
-    <script src="script.js"></script>
-  </body>
-</html>
+</html> -->
