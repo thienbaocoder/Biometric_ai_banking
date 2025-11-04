@@ -1,0 +1,222 @@
+      :root {
+          --primary: #0f62fe;
+          --good: #12b886;
+          --warn: #f59f00;
+          --bad: #fa5252;
+          --muted: #6b7280;
+          --card: #ffffff;
+          --bg: #9ECFD4;
+      }
+
+      * {
+          margin: 0;
+          padding: 0 auto;
+          box-sizing: border-box;
+      }
+
+      body {
+          font-family: "Roboto", sans-serif;
+          background: var(--bg);
+          color: #111827;
+
+      }
+
+      .bg-header {
+          width: 100%;
+          background-color: #016B61;
+
+          h1 {
+              color: #E5E9C5;
+              text-transform: uppercase;
+              padding: 30px;
+              text-align: center;
+              font-size: 22px;
+              margin: 0 0 8px;
+          }
+
+      }
+
+      .action {
+          height: 80vh;
+          background-color: transparent;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
+          .flex {
+              gap: 60px;
+              max-width: 1000px;
+              display: flex;
+              justify-content: space-around;
+
+              .card {
+                  padding: 40px 60px;
+                  width: 50%;
+                  background-color: #FCF9EA;
+                  border-radius: 25px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  text-align: center;
+                  line-height: 1.5;
+                  transition: all ease-in-out 0.3s;
+                  box-shadow: 0px 3px 8px 3px rgba(217, 217, 217, 0.412);
+                  position: relative;
+
+                  h3 {
+                      margin: 10px 0px;
+                      font-size: 26px;
+                  }
+
+                  p {
+                      font-family: "Roboto", sans-serif;
+                      line-height: 1.5;
+                  }
+
+                  .icon-key {
+                      width: 80px;
+                      height: 80px;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: #1aa94b;
+                      border-radius: 15px;
+
+                      i {
+                          font-size: 28px;
+                          color: #fff;
+                      }
+                  }
+
+                  .icon-shield {
+                      width: 80px;
+                      height: 80px;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: #1d4ed7;
+                      border-radius: 15px;
+
+                      i {
+                          font-size: 28px;
+
+                          color: #fff;
+                      }
+                  }
+
+                  .btn-sign-in {
+                      cursor: pointer;
+                      position: relative;
+                      padding: 10px 24px;
+                      font-size: 16px;
+                      color: #1aa94b;
+                      border: 1px solid #1aa94b;
+                      border-radius: 34px;
+                      background-color: transparent;
+                      transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+                      overflow: hidden;
+
+                      margin-top: 20px;
+
+                      &::before {
+                          content: '';
+                          position: absolute;
+                          inset: 0;
+                          margin: auto;
+                          width: 50px;
+                          height: 50px;
+                          border-radius: inherit;
+                          scale: 0;
+                          z-index: -1;
+                          background-color: #1aa94b;
+                          transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+                      }
+
+                      &:active {
+                          scale: 1;
+                      }
+
+                      .sign-in {
+                          text-decoration: none;
+                          color: #1aa94b;
+                          font-family: "Roboto", sans-serif;
+                      }
+
+                      &:hover {
+                          background-color: #1aa94b;
+                          scale: 1.1;
+                          box-shadow: 0 0px 20px rgba(193, 163, 98, 0.4);
+
+                          &::before {
+                              scale: 3;
+                          }
+
+                          .sign-in {
+                              color: white;
+                          }
+                      }
+
+                  }
+
+                  .btn-sign-up {
+                      cursor: pointer;
+                      position: relative;
+                      padding: 10px 24px;
+                      font-size: 16px;
+                      color: #1d4ed7;
+                      border: 1px solid #1d4ed7;
+                      border-radius: 34px;
+                      background-color: transparent;
+                      transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+                      overflow: hidden;
+
+                      margin-top: 20px;
+
+                      &::before {
+                          content: '';
+                          position: absolute;
+                          inset: 0;
+                          margin: auto;
+                          width: 50px;
+                          height: 50px;
+                          border-radius: inherit;
+                          scale: 0;
+                          z-index: -1;
+                          background-color: #1d4ed7;
+                          transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+                      }
+
+                      &:active {
+                          scale: 1;
+                      }
+
+                      .sign-up {
+                          text-decoration: none;
+                          color: #1d4ed7;
+                          font-family: "Roboto", sans-serif;
+                      }
+
+                      &:hover {
+                          background-color: #1d4ed7;
+                          scale: 1.1;
+                          box-shadow: 0 0px 20px rgba(193, 163, 98, 0.4);
+
+                          &::before {
+                              scale: 3;
+                          }
+
+                          .sign-up {
+                              color: white;
+                          }
+                      }
+                  }
+
+
+                  &:hover {
+                      background-color: #E5E9C5;
+                      transform: scale(105%);
+                  }
+              }
+          }
+      }
