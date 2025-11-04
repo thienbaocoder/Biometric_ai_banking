@@ -86,7 +86,6 @@ def add_log(
         "AttackType": attack_type,
         "DurationMs": duration_ms,
     }
-    # Chèn các cột mở rộng (nếu có trong DB)
     for k, v in extra_map.items():
         if k in cols:
             # chèn trước At để giữ thứ tự

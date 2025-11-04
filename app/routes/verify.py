@@ -124,7 +124,6 @@ def verify_submit(
     duration_ms = int((time.perf_counter() - t0) * 1000)
     is_bona = None if gt is None else (1 if gt.lower()=="bona" else 0)
 
-    # Ghi log – không để lỗi log làm hỏng flow
     try:
         add_log(
             user_id, sim_min, dec,
