@@ -25,6 +25,26 @@
             <p class="muted">
                 UI sẽ tự chụp 3 tư thế: <b>front → left → right</b> khi ổn định.
             </p>
+
+            <!-- Form thông tin tài khoản -->
+            <div class="cred-form">
+                <div class="form-row">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" placeholder="you@example.com" />
+                </div>
+                <div class="form-row">
+                    <label for="signupPassword">Mật khẩu</label>
+                    <input type="password" id="signupPassword" placeholder="Nhập mật khẩu" />
+                </div>
+                <div class="form-row">
+                    <label for="signupPhone">Số điện thoại (tuỳ chọn)</label>
+                    <input type="text" id="signupPhone" placeholder="098xxxxxxx" />
+                </div>
+                <div class="form-row">
+                    <small id="signupError" class="muted" style="color: #e74c3c;"></small>
+                </div>
+            </div>
+
             <div id="camWrap">
                 <video id="cam" autoplay playsinline></video>
                 <canvas id="overlay" width="640" height="480"></canvas>
@@ -33,9 +53,12 @@
             <div class="stack">
                 <div><span class="badge">Live camera</span></div>
                 <button id="btnCam" class="primary">Bật camera</button>
+                <!-- Khi bấm Enroll, script.js nên đọc cả email/password/phone & gửi lên backend -->
                 <button id="btnEnroll" class="primary">Enroll tự động</button>
-                <div style="display: flex; justify-content: space-around;">UserId: <b id="userIdShow" class="muted">chưa
-                        có</b></div>
+
+                <div style="display: flex; justify-content: space-around;">
+                    UserId: <b id="userIdShow" class="muted">chưa có</b>
+                </div>
 
                 <div class="pill">Auto-capture khi khung hình ổn định</div>
 
@@ -59,6 +82,7 @@
         <h2>Kết quả</h2>
         <pre id="out">{}</pre>
     </section>
+
     <section class="nav">
         <div class="circle">
             <button class="btn-sign-up">

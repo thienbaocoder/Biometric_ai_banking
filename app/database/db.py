@@ -5,11 +5,13 @@ from typing import Dict
 # DB ngay tại root project: .../biometric_auth_ai/biometric.db
 DB_PATH = (Path(__file__).resolve().parents[2] / "biometric.db")
 
+
 def get_conn():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
+
 
 # Các cột mở rộng cho log
 _AUTHLOGS_EXTRA_COLS: Dict[str, str] = {
@@ -23,6 +25,13 @@ _AUTHLOGS_EXTRA_COLS: Dict[str, str] = {
     # Ip/DeviceInfo/Geo đã có sẵn trong schema gốc
 }
 
+# Các cột mở rộng cho Users (mật khẩu)
+_USERS_EXTRA_COLS: Dict[str, str] = {
+    "PasswordHash": "TEXT",
+    "PasswordSalt": "TEXT",
+}
+
+
 def _ensure_authlogs_columns(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(AuthLogs)")
@@ -32,6 +41,18 @@ def _ensure_authlogs_columns(conn: sqlite3.Connection):
             cur.execute(f"ALTER TABLE AuthLogs ADD COLUMN {col} {typ}")
     conn.commit()
 
+
+def _ensure_users_columns(conn: sqlite3.Connection):
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(Users)")
+    existing = {row[1] for row in cur.fetchall()}
+    for col, typ in _USERS_EXTRA_COLS.items():    # <- ĐÚNG: 1 dấu _
+        if col not in existing:
+            cur.execute(f"ALTER TABLE Users ADD COLUMN {col} {typ}")
+    conn.commit()
+
+
+
 def init_db():
     schema = """
     PRAGMA journal_mode=WAL;
@@ -39,12 +60,14 @@ def init_db():
     PRAGMA foreign_keys=ON;
 
     CREATE TABLE IF NOT EXISTS Users(
-      UserId     INTEGER PRIMARY KEY AUTOINCREMENT,
-      Phone      TEXT,
-      Email      TEXT,
-      Status     TEXT NOT NULL DEFAULT 'ACTIVE',
-      CreatedAt  INTEGER NOT NULL,
-      UpdatedAt  INTEGER NOT NULL
+      UserId       INTEGER PRIMARY KEY AUTOINCREMENT,
+      Phone        TEXT,
+      Email        TEXT,
+      PasswordHash TEXT,
+      PasswordSalt TEXT,
+      Status       TEXT NOT NULL DEFAULT 'ACTIVE',
+      CreatedAt    INTEGER NOT NULL,
+      UpdatedAt    INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS UserEmbeddings(
@@ -93,4 +116,5 @@ def init_db():
     with get_conn() as conn:
         conn.executescript(schema)
         _ensure_authlogs_columns(conn)
+        _ensure_users_columns(conn)
     print(f"[DB] Using database at: {DB_PATH}")
