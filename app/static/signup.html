@@ -19,55 +19,37 @@
 </head>
 
 <body>
-    <section>
+    <!-- Modal Form -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <h3>Thông tin đăng ký</h3>
+            <input type="email" id="signupEmail" placeholder="Email" required>
+            <input type="password" id="signupPassword" placeholder="Mật khẩu" required>
+            <input type="text" id="signupPhone" placeholder="Số điện thoại (tuỳ chọn)">
+            <button id="continueSignup">Tiếp tục</button>
+        </div>
+    </div>
+
+    <!-- Main camera area (ẩn trước khi user nhập form xong) -->
+    <section id="mainSection" style="display:none;">
         <div class="row">
             <h2>Đăng ký khuôn mặt</h2>
-            <p class="muted">
-                UI sẽ tự chụp 3 tư thế: <b>front → left → right</b> khi ổn định.
-            </p>
-
-            <!-- Form thông tin tài khoản -->
-            <div class="cred-form">
-                <div class="form-row">
-                    <label for="signupEmail">Email</label>
-                    <input type="email" id="signupEmail" placeholder="you@example.com" />
-                </div>
-                <div class="form-row">
-                    <label for="signupPassword">Mật khẩu</label>
-                    <input type="password" id="signupPassword" placeholder="Nhập mật khẩu" />
-                </div>
-                <div class="form-row">
-                    <label for="signupPhone">Số điện thoại (tuỳ chọn)</label>
-                    <input type="text" id="signupPhone" placeholder="098xxxxxxx" />
-                </div>
-                <div class="form-row">
-                    <small id="signupError" class="muted" style="color: #e74c3c;"></small>
-                </div>
-            </div>
-
+            <p class="muted">UI sẽ tự chụp 3 tư thế: <b>front → left → right</b>.</p>
             <div id="camWrap">
                 <video id="cam" autoplay playsinline></video>
                 <canvas id="overlay" width="640" height="480"></canvas>
             </div>
 
             <div class="stack">
-                <div><span class="badge">Live camera</span></div>
-                <button id="btnCam" class="primary">Bật camera</button>
-                <!-- Khi bấm Enroll, script.js nên đọc cả email/password/phone & gửi lên backend -->
-                <button id="btnEnroll" class="primary">Enroll tự động</button>
-
-                <div style="display: flex; justify-content: space-around;">
-                    UserId: <b id="userIdShow" class="muted">chưa có</b>
-                </div>
+                <button id="btnEnroll" class="primary">Bắt đầu đăng ký</button>
+                <div>UserId: <b id="userIdShow" class="muted">chưa có</b></div>
 
                 <div class="pill">Auto-capture khi khung hình ổn định</div>
-
                 <div class="kpi">
                     <div class="card">Motion: <b id="kMotion">–</b></div>
                     <div class="card">Sharpness: <b id="kSharp">–</b></div>
                     <div class="card">Stability: <b id="kStable">–</b></div>
                 </div>
-
                 <div>
                     <div class="muted" id="poseHint">—</div>
                     <div id="progressBar">
@@ -77,12 +59,6 @@
             </div>
         </div>
     </section>
-
-    <section>
-        <h2>Kết quả</h2>
-        <pre id="out">{}</pre>
-    </section>
-
     <section class="nav">
         <div class="circle">
             <button class="btn-sign-up">
@@ -100,8 +76,16 @@
             </button>
         </div>
     </section>
-
     <script src="script.js"></script>
+    <script>
+        window.onload = () => {
+            const modal = document.getElementById("signupModal");
+            const main = document.getElementById("mainSection");
+            modal.style.display = "flex";
+            document.getElementById("continueSignup").onclick = () => {
+                modal.style.display = "none";
+                main.style.display = "block";
+            };
+        };
+    </script>
 </body>
-
-</html>

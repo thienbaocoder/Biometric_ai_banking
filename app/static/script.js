@@ -537,3 +537,31 @@ $("btnVerify")?.addEventListener("click", async () => {
 
 // ------------- Bật camera (nút riêng) -------------
 $("btnCam")?.addEventListener("click", startCam);
+// ======= Modal form flow =======
+window.addEventListener("DOMContentLoaded", () => {
+  const signupModal = document.getElementById("signupModal");
+  const signinModal = document.getElementById("signinModal");
+  const mainSection = document.getElementById("mainSection");
+
+  // Nếu có modal, show nó trước
+  if (signupModal || signinModal) {
+    mainSection.style.display = "none";
+    (signupModal || signinModal).style.display = "flex";
+  }
+
+  const contSignup = document.getElementById("continueSignup");
+  const contSignin = document.getElementById("continueSignin");
+
+  if (contSignup) {
+    contSignup.addEventListener("click", () => {
+      signupModal.style.display = "none";
+      mainSection.style.display = "block";
+    });
+  }
+  if (contSignin) {
+    contSignin.addEventListener("click", () => {
+      signinModal.style.display = "none";
+      mainSection.style.display = "block";
+    });
+  }
+});
